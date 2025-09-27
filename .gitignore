@@ -1,0 +1,47 @@
+
+# .gitignore for STM32 Keil/MDK projects
+# Ignore build artifacts produced by uVision/Keil and common temp files
+
+# Keil/MDK build outputs
+**/Objects/
+**/Listings/
+**/RTE/
+
+# Common generated binaries and build artefacts
+*.axf
+*.hex
+*.map
+*.lnp
+*.sct
+*.o
+*.d
+*.dep
+*.htm
+*build_log.htm
+ExtDll.iex
+
+# Keil GUI / user-specific files
+*.uvguix.*
+
+# Optional: Keep project files (.uvprojx, .uvoptx) under version control
+# but ignore user/gui generated variants
+# *.uvprojx
+# *.uvoptx
+
+# Editor / OS / workspace files
+.vscode/
+.vs/
+*.code-workspace
+Thumbs.db
+desktop.ini
+*.log
+*.tmp
+*.swp
+*~
+
+# OneDrive temporary or lock files
+~$*
+
+# Misc
+*.bak
+
