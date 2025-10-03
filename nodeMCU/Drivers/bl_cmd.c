@@ -146,7 +146,7 @@ void BL_ProcessCommand(uint8_t *rx_buf, uint16_t len)
     case CMD_JUMP:
     {
         BL_SendACK();
-        Delay_Ms(10); // doi 1 chut truoc khi nhay
+        DelayMs(10); // doi 1 chut truoc khi nhay
         Jump_To_Application();
         break;
     }

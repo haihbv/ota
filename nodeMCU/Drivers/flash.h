@@ -1,6 +1,10 @@
 #ifndef __FLASH_H
 #define __FLASH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "stm32f10x.h"
 
 #define FLASH_PAGE_SIZE 1024
@@ -18,4 +22,8 @@ FlashStatus Flash_Erase(uint32_t startAddr, uint32_t size);
 FlashStatus Flash_Write(uint32_t addr, uint8_t *data, uint16_t len);
 void Flash_ReadBuffer(uint32_t addr, uint8_t *buf, uint16_t len);
 
-#endif
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* __FLASH_H */

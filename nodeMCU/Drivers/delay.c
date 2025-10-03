@@ -1,39 +1,41 @@
 #include "delay.h"
 
-static volatile uint32_t tick_millis = 0;
-
+volatile uint32_t tickMs = 0;
+Delay_Driver_t delay;
 void Delay_Init(void)
 {
+    SysTick->CTRL = 0; // disable Systick
+    SysTick->VAL = 0;
     SysTick->LOAD = 72000 - 1;
-    SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk |
-                    SysTick_CTRL_ENABLE_Msk |
-                    SysTick_CTRL_TICKINT_Msk;
+
+    SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk | SysTick_CTRL_TICKINT_Msk;
 }
 
-uint32_t millis(void)
+void Delay_AutoInit(void) __attribute__((constructor));
+
+void Delay_AutoInit(void)
 {
-    return tick_millis;
+    delay.Init = Delay_Init;
 }
 
-void Delay_Ms(uint32_t ms)
+void DelayMs(uint32_t msDelay)
 {
     uint32_t start = millis();
-    while (millis() - start < ms)
+    while ((millis() - start) < msDelay)
         ;
 }
-
-void Delay_Us(uint32_t us)
+void DelayUs(uint32_t usDelay)
 {
-    volatile uint32_t count;
-    while (us--)
+    while (usDelay--)
     {
-        count = 72;
+        volatile uint32_t count = 8;
         while (count--)
-            ;
+        {
+            __NOP();
+        }
     }
 }
-
 void SysTick_Handler(void)
 {
-    tick_millis++;
+    tickMs++;
 }
