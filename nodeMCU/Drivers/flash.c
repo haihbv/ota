@@ -1,14 +1,41 @@
 #include "main.h"
 
-#define FLASH_PAGE_SIZE 1024		 ///< STM32F103C8: 1KB/page; high-density STM32F1: 2KB/page
-#define FLASH_BASE_ADDR 0x08000000	 ///< Dia chi bat dau Flash
-#define FLASH_TOTAL_SIZE (64 * 1024) ///< 64KB flash
+/*---------------------------------------------------------------------------*/
+/* Định nghĩa hằng số cho vùng Flash STM32F103C8                             */
+/*---------------------------------------------------------------------------*/
 
 /**
- * @brief   Xoa toan bo vung Flash tu startAddr voi do dai size
- * @param   startAddr   Dia chi bat dau xoa (phai thuoc vung Flash)
- * @param   size        So byte can xoa
- * @retval  FlashStatus FLASH_OP_OK / FLASH_OP_ERROR / FLASH_OP_ADDR_INVALID
+ * @brief   Kích thước 1 trang flash (Page).
+ * @note    STM32F103C8: 1KB/page; high-density STM32F1: 2KB/page.
+ */
+#define FLASH_PAGE_SIZE 1024
+
+/**
+ * @brief   Địa chỉ bắt đầu Flash (Base address).
+ */
+#define FLASH_BASE_ADDR 0x08000000
+
+/**
+ * @brief   Tổng dung lượng Flash (64KB).
+ */
+#define FLASH_TOTAL_SIZE (64 * 1024)
+
+/*---------------------------------------------------------------------------*/
+/* Hàm API thao tác với Flash                                                */
+/*---------------------------------------------------------------------------*/
+
+/**
+ * @brief   Xóa một vùng Flash từ địa chỉ bắt đầu với độ dài chỉ định.
+ *
+ * @param   startAddr   Địa chỉ bắt đầu xóa (phải thuộc vùng Flash).
+ * @param   size        Số byte cần xóa.
+ * @retval  FlashStatus
+ *          - FLASH_OP_OK            : thành công.
+ *          - FLASH_OP_ERROR         : lỗi khi gọi hàm HAL xóa trang.
+ *          - FLASH_OP_ADDR_INVALID  : địa chỉ không hợp lệ (ngoài Flash).
+ *
+ * @note    Hàm sẽ tự động khóa lại Flash sau khi hoàn tất.
+ * @warning Địa chỉ @p startAddr phải căn theo page (FLASH_PAGE_SIZE) để xóa chính xác.
  */
 FlashStatus Flash_Erase(uint32_t startAddr, uint32_t size)
 {
@@ -40,11 +67,22 @@ FlashStatus Flash_Erase(uint32_t startAddr, uint32_t size)
 }
 
 /**
- * @brief   Ghi du lieu vao Flash
- * @param   addr    Dia chi Flash can ghi (phai chan)
- * @param   data    Buffer du lieu can ghi
- * @param   len     So byte can ghi
- * @retval  FlashStatus FLASH_OP_OK / FLASH_OP_ERROR / FLASH_OP_ADDR_INVALID
+ * @brief   Ghi dữ liệu vào Flash.
+ *
+ * @param   addr    Địa chỉ Flash cần ghi (phải là số chẵn, 2-byte aligned).
+ * @param   data    Con trỏ buffer dữ liệu cần ghi.
+ * @param   len     Số byte cần ghi.
+ * @retval  FlashStatus
+ *          - FLASH_OP_OK            : thành công.
+ *          - FLASH_OP_ERROR         : lỗi khi gọi hàm HAL ghi half-word hoặc verify.
+ *          - FLASH_OP_ADDR_INVALID  : địa chỉ không hợp lệ hoặc không đúng alignment.
+ *
+ * @details
+ *  - Ghi theo đơn vị half-word (16 bit).
+ *  - Nếu độ dài @p len lẻ, byte cuối cùng sẽ được pad = 0xFF.
+ *  - Sau mỗi lần ghi, dữ liệu sẽ được đọc lại và verify.
+ *
+ * @note    Hàm sẽ tự động khóa lại Flash sau khi hoàn tất.
  */
 FlashStatus Flash_Write(uint32_t addr, uint8_t *data, uint16_t len)
 {
@@ -72,7 +110,7 @@ FlashStatus Flash_Write(uint32_t addr, uint8_t *data, uint16_t len)
 			return FLASH_OP_ERROR;
 		}
 
-		// Verify lại dữ liệu sau khi ghi
+		/* Verify dữ liệu sau khi ghi */
 		if (*(volatile uint16_t *)(addr + i) != halfword)
 		{
 			FLASH_Lock();
@@ -85,10 +123,14 @@ FlashStatus Flash_Write(uint32_t addr, uint8_t *data, uint16_t len)
 }
 
 /**
- * @brief   Doc du lieu tu Flash vao buffer
- * @param   addr    Dia chi Flash bat dau doc
- * @param   buf     Buffer dich
- * @param   len     So byte can doc
+ * @brief   Đọc dữ liệu từ Flash vào buffer.
+ *
+ * @param   addr    Địa chỉ Flash bắt đầu đọc.
+ * @param   buf     Con trỏ buffer đích.
+ * @param   len     Số byte cần đọc.
+ * @retval  None
+ *
+ * @note    Thao tác đọc từ Flash tương tự như đọc từ bộ nhớ thường.
  */
 void Flash_ReadBuffer(uint32_t addr, uint8_t *buf, uint16_t len)
 {
